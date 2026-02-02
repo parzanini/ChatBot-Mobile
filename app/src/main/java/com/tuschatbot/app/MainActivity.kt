@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import com.tuschatbot.app.ui.theme.TUSChatbotTheme
+import com.example.compose.TUSChatbotTheme
 import com.tuschatbot.app.components.ChatTopBar
 import com.tuschatbot.app.screens.HomeScreen
 

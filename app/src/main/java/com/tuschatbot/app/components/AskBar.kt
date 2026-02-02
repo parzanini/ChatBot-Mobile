@@ -12,23 +12,23 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.tooling.preview.Preview
-import com.tuschatbot.app.ui.theme.TUSChatbotTheme
 
 @Composable
 fun AskBar() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
-            .padding(12.dp)
+            .background(MaterialTheme.colorScheme.primary)
+            .padding(8.dp)
     ) {
         Row(
             modifier = Modifier
@@ -42,32 +42,49 @@ fun AskBar() {
                 modifier = Modifier
                     .weight(1f)
                     .height(56.dp),
-                placeholder = { Text("Ask a question about TUS...") },
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true,
-                enabled = false
+                placeholder = {
+                    Text(
+                        text = "Ask a question about TUS...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Black
+                    )
+                },
+                shape = RoundedCornerShape(18.dp),
+                singleLine = false,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White,
+                    disabledContainerColor = Color.White,
+                    unfocusedBorderColor = Color.LightGray,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    disabledBorderColor = Color.LightGray,
+                    unfocusedTextColor = Color.Black,
+                    focusedTextColor = Color.Black,
+                    disabledTextColor = Color.Gray,
+                )
             )
 
             Button(
                 onClick = {},
                 modifier = Modifier
-                    .padding(start = 12.dp)
-                    .height(56.dp)
-                    .padding(4.dp),
+                    .padding(start = 4.dp)
+                    .height(56.dp),
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF197F88)
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Send,
                     contentDescription = "Send",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
     }
 }
+
+
 
 
 

@@ -6,9 +6,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
-import com.tuschatbot.app.ui.theme.TUSChatbotTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -18,11 +15,11 @@ fun ChatTopBar() {
             Text(
                 text = "Chatbot",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onPrimary
             )
         },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = Color(0xFF197F88)
+            containerColor = MaterialTheme.colorScheme.primary
         )
     )
 }
