@@ -23,7 +23,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun AskBar() {
+fun AskBar(
+    text: String,
+    onTextChange: (String) -> Unit,
+    onSend: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -37,8 +41,8 @@ fun AskBar() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             OutlinedTextField(
-                value = "",
-                onValueChange = {},
+                value = text,
+                onValueChange = onTextChange,
                 modifier = Modifier
                     .weight(1f)
                     .height(56.dp),
@@ -46,11 +50,11 @@ fun AskBar() {
                     Text(
                         text = "Ask a question about TUS...",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Black
+                        color = Color.Gray
                     )
                 },
                 shape = RoundedCornerShape(18.dp),
-                singleLine = false,
+                singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = Color.White,
                     focusedContainerColor = Color.White,
@@ -65,7 +69,11 @@ fun AskBar() {
             )
 
             Button(
-                onClick = {},
+                onClick = {
+                    if (text.isNotBlank()) {
+                        onSend()
+                    }
+                },
                 modifier = Modifier
                     .padding(start = 4.dp)
                     .height(56.dp),

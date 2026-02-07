@@ -17,7 +17,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            TUSChatbotTheme {
+            TUSChatbotTheme(darkTheme = false, dynamicColor = false) {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = { ChatTopBar() }
