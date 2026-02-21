@@ -1,6 +1,9 @@
 package com.tuschatbot.app.screens
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,16 +22,32 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.tuschatbot.app.components.AskBar
 import com.tuschatbot.app.network.AskRequest
 import com.tuschatbot.app.network.RetrofitClient
+import com.tuschatbot.app.network.Source
 import kotlinx.coroutines.launch
+
+fun filterDuplicateSources(sources: List<Source>): List<Source> {
+    val seenSourceNames = mutableSetOf<String>()
+    return sources.filter { source ->
+        if (source.source_name in seenSourceNames) {
+            false
+        } else {
+            seenSourceNames.add(source.source_name)
+            true
+        }
+    }
+}
 
 data class Message(
     val text: String,
     val isUser: Boolean,
-    val sources: List<Pair<String, String?>> = emptyList()
+    val sources: List<Pair<String, String?>> = emptyList(),
+    val totalTimeMs: Long? = null
 )
 
 @Composable
@@ -36,6 +55,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     var textInput by remember { mutableStateOf("") }
     var messages by remember { mutableStateOf(listOf<Message>()) }
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -95,13 +115,34 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                                 ) {
                                     message.sources.forEach { (source, url) ->
                                         Text(
-                                            text = "Source: $source${if (url != null) " - $url" else ""}",
+                                            text = "Source: $source${if (url != null) " - Click to open" else ""}",
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.padding(vertical = 2.dp)
+                                            color = if (url != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            textDecoration = if (url != null) TextDecoration.Underline else null,
+                                            modifier = Modifier
+                                                .padding(vertical = 2.dp)
+                                                .then(
+                                                    if (url != null) {
+                                                        Modifier.clickable {
+                                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                                            context.startActivity(intent)
+                                                        }
+                                                    } else {
+                                                        Modifier
+                                                    }
+                                                )
                                         )
                                     }
                                 }
+                            }
+
+                            if (message.totalTimeMs != null) {
+                                Text(
+                                    text = "Query time: ${message.totalTimeMs}ms",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.outline,
+                                    modifier = Modifier.padding(top = 8.dp)
+                                )
                             }
                         }
                     }
@@ -119,11 +160,13 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                     coroutineScope.launch {
                         try {
                             val response = RetrofitClient.apiService.ask(AskRequest(query = query))
-                            val sources = response.sources.map { it.source_name to it.url }
+                            val uniqueSources = filterDuplicateSources(response.sources)
+                            val sources = uniqueSources.map { it.source_name to it.url }
                             messages = messages + Message(
                                 text = response.answer,
                                 isUser = false,
-                                sources = sources
+                                sources = sources,
+                                totalTimeMs = response.debug?.total_time_ms
                             )
                         } catch (e: Exception) {
                             e.printStackTrace()

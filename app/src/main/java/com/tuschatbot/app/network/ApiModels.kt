@@ -11,8 +11,13 @@ data class Source(
     val score: Double
 )
 
+data class Debug(
+    val total_time_ms: Long
+)
+
 data class AskResponse(
     val answer: String,
-    val sources: List<Source>
+    val sources: List<Source>,
+    val debug: Debug? = null
 )
 
