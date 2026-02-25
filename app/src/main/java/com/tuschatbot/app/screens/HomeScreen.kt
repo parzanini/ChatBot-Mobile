@@ -53,7 +53,12 @@ data class Message(
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
     var textInput by remember { mutableStateOf("") }
-    var messages by remember { mutableStateOf(listOf<Message>()) }
+    var messages by remember { mutableStateOf(listOf(
+        Message(
+            text = "Hi! I'm your TUS assistant. How can I help you today?",
+            isUser = false
+        )
+    )) }
     var isLoading by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
