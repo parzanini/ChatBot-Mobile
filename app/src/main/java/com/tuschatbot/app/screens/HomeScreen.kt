@@ -54,6 +54,7 @@ data class Message(
 fun HomeScreen(modifier: Modifier = Modifier) {
     var textInput by remember { mutableStateOf("") }
     var messages by remember { mutableStateOf(listOf<Message>()) }
+    var isLoading by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -147,6 +148,32 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                         }
                     }
                 }
+
+                // Loading indicator
+                if (isLoading) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                    .padding(12.dp)
+                            ) {
+                                Text(
+                                    text = "Loading your answer...",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             AskBar(
@@ -156,6 +183,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                     val query = textInput
                     messages = messages + Message(text = query, isUser = true)
                     textInput = ""
+                    isLoading = true
 
                     coroutineScope.launch {
                         try {
@@ -174,6 +202,8 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                                 text = "Error: ${e.message}",
                                 isUser = false
                             )
+                        } finally {
+                            isLoading = false
                         }
                     }
                 }
