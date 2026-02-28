@@ -2,34 +2,32 @@ package com.tuschatbot.app.screens
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HelpScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBack: () -> Unit = {}
 ) {
         Column(
             modifier = modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp)
         ) {
             // About the App
             Text(
@@ -39,7 +37,7 @@ fun HelpScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Text(
-                text = "This chatbot assistant provides information scraped from the TUS (Technological University of the Shannon) website. " +
+                text = "This chatbot assistant provides information about TUS (Technological University of the Shannon). " +
                         "Ask questions about courses, facilities, campus information, and more!",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -111,7 +109,7 @@ fun HelpScreen(
             Text(
                 text = "Developed by: Thiago Gomes Parzanini",
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 4.dp)
+
             )
             ContactLink(
                 label = "Contact:",
@@ -129,24 +127,23 @@ private fun ContactLink(
 ) {
     val context = LocalContext.current
 
-    Column(modifier = Modifier.padding(bottom = 8.dp)) {
+    Row(modifier = Modifier.padding(bottom = 12.dp)) {
         Text(
             text = label,
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(end = 8.dp)
         )
-        TextButton(
-            onClick = {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 context.startActivity(intent)
-            },
-            modifier = Modifier.padding(start = 0.dp)
-        ) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
+            }
+        )
     }
 }
 
