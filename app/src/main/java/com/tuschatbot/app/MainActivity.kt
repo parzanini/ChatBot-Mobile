@@ -14,6 +14,20 @@ import com.example.compose.TUSChatbotTheme
 import com.tuschatbot.app.components.ChatTopBar
 import com.tuschatbot.app.screens.HomeScreen
 import com.tuschatbot.app.screens.HelpScreen
+import com.tuschatbot.app.screens.LoginScreen
+import com.tuschatbot.app.screens.RegisterScreen
+
+private enum class AppScreen {
+    Login,
+    Register,
+    Home,
+    Help
+}
+
+private enum class AuthMode {
+    LoggedIn,
+    Guest
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,29 +36,72 @@ class MainActivity : ComponentActivity() {
         setContent {
             // Apply the app theme colors
             TUSChatbotTheme(darkTheme = false, dynamicColor = false) {
-                // Create a variable to track if Help screen should be shown
-                val showHelp = remember { mutableStateOf(false) }
+                val currentScreen = remember { mutableStateOf(AppScreen.Login) }
+                val authMode = remember { mutableStateOf<AuthMode?>(null) }
 
                 // Basic layout structure with top bar and content area
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
-                        // Top bar with help and back buttons
                         ChatTopBar(
-                            onHelpClick = { showHelp.value = true }, // When ? is clicked, show Help
-                            onBackClick = { showHelp.value = false }, // When <- is clicked, show Home
-                            showBackButton = showHelp.value // Show back button only on Help screen
+                            onHelpClick = { currentScreen.value = AppScreen.Help },
+                            onBackClick = {
+                                currentScreen.value = when (currentScreen.value) {
+                                    AppScreen.Help -> AppScreen.Home
+                                    AppScreen.Register -> AppScreen.Login
+                                    else -> AppScreen.Home
+                                }
+                            },
+                            onLogoutClick = {
+                                authMode.value = null
+                                currentScreen.value = AppScreen.Login
+                            },
+                            showBackButton =
+                                currentScreen.value == AppScreen.Help || currentScreen.value == AppScreen.Register,
+                            showHelpButton = authMode.value != null && currentScreen.value == AppScreen.Home,
+                            showLogoutButton = authMode.value != null
                         )
                     }
                 ) { innerPadding ->
-                    // Display Help screen if showHelp is true, otherwise show Home screen
-                    if (showHelp.value) {
-                        HelpScreen(
-                            modifier = Modifier.padding(innerPadding),
-                            onBack = { showHelp.value = false } // Go back to Home when needed
-                        )
-                    } else {
-                        HomeScreen(modifier = Modifier.padding(innerPadding))
+                    when (currentScreen.value) {
+                        AppScreen.Login -> {
+                            LoginScreen(
+                                modifier = Modifier.padding(innerPadding),
+                                onLogin = {
+                                    authMode.value = AuthMode.LoggedIn
+                                    currentScreen.value = AppScreen.Home
+                                },
+                                onContinueAsGuest = {
+                                    authMode.value = AuthMode.Guest
+                                    currentScreen.value = AppScreen.Home
+                                },
+                                onOpenRegister = {
+                                    currentScreen.value = AppScreen.Register
+                                }
+                            )
+                        }
+
+                        AppScreen.Register -> {
+                            RegisterScreen(
+                                modifier = Modifier.padding(innerPadding),
+                                onBackToLogin = { currentScreen.value = AppScreen.Login },
+                                onRegisterSuccess = {
+                                    authMode.value = AuthMode.LoggedIn
+                                    currentScreen.value = AppScreen.Home
+                                }
+                            )
+                        }
+
+                        AppScreen.Help -> {
+                            HelpScreen(
+                                modifier = Modifier.padding(innerPadding),
+                                onBack = { currentScreen.value = AppScreen.Home }
+                            )
+                        }
+
+                        AppScreen.Home -> {
+                            HomeScreen(modifier = Modifier.padding(innerPadding))
+                        }
                     }
                 }
             }

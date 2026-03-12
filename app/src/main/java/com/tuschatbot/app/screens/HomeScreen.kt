@@ -10,11 +10,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,15 +69,25 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     )) }
     // Flag to show/hide loading indicator
     var isLoading by remember { mutableStateOf(false) }
+    // State for controlling the list scroll position
+    val listState = rememberLazyListState()
     // Scope for background tasks
     val coroutineScope = rememberCoroutineScope()
     // Access to Android context for opening links
     val context = LocalContext.current
 
+    // Auto-scroll to the last message when new messages are added
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.size - 1) // Scroll to last message
+        }
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Scrollable list of messages
             LazyColumn(
+                state = listState, // Use the list state for auto-scroll
                 modifier = Modifier
                     .weight(1f) // Take up available space
                     .fillMaxWidth()

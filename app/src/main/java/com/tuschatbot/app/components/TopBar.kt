@@ -9,6 +9,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 
@@ -17,7 +18,10 @@ import androidx.compose.runtime.Composable
 fun ChatTopBar(
     onHelpClick: () -> Unit = {}, // Callback when ? button is clicked
     onBackClick: () -> Unit = {}, // Callback when <- button is clicked
-    showBackButton: Boolean = false // Flag to show back button instead of help button
+    onLogoutClick: () -> Unit = {}, // Callback when Logout is clicked
+    showBackButton: Boolean = false, // Flag to show back button instead of help button
+    showHelpButton: Boolean = true,
+    showLogoutButton: Boolean = false
 ) {
     CenterAlignedTopAppBar(
         title = {
@@ -43,12 +47,21 @@ fun ChatTopBar(
         },
         // Show help button on right side only when NOT showing back button
         actions = {
-            if (!showBackButton) {
+            if (showHelpButton && !showBackButton) {
                 IconButton(onClick = onHelpClick) {
                     Icon(
                         imageVector = Icons.Outlined.Info,
                         contentDescription = "Help",
                         tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+
+            if (showLogoutButton) {
+                TextButton(onClick = onLogoutClick) {
+                    Text(
+                        text = "Logout",
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }

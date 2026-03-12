@@ -25,3 +25,17 @@ data class AskResponse(
     val debug: Debug? = null // Optional debug info (time, etc.)
 )
 
+// Request body for user registration
+data class RegisterRequest(
+    val email: String,
+    val name: String,
+    val surname: String,
+    val password: String
+)
+
+// Basic response from registration endpoint
+data class RegisterResponse(
+    val message: String? = null,
+    val detail: String? = null
+)
+
