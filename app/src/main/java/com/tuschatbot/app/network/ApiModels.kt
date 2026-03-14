@@ -33,8 +33,36 @@ data class RegisterRequest(
     val password: String
 )
 
-// Basic response from registration endpoint
+data class UserDto(
+    val email: String,
+    val name: String,
+    val surname: String,
+    val role: String
+)
+
+// Response from registration endpoint
 data class RegisterResponse(
+    val success: Boolean,
+    val message: String? = null,
+    val detail: String? = null,
+    val user: UserDto? = null
+)
+
+data class LoginRequest(
+    val email: String,
+    val password: String
+)
+
+data class LoginResponse(
+    val success: Boolean,
+    val token: String? = null,
+    val message: String? = null,
+    val detail: String? = null,
+    val user: UserDto? = null
+)
+
+data class LogoutResponse(
+    val success: Boolean,
     val message: String? = null,
     val detail: String? = null
 )

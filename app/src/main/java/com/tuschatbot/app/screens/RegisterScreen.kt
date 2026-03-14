@@ -22,15 +22,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.tuschatbot.app.network.LoginRequest
 import com.tuschatbot.app.network.RegisterRequest
 import com.tuschatbot.app.network.RetrofitClient
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 @Composable
 fun RegisterScreen(
     modifier: Modifier = Modifier,
     onBackToLogin: () -> Unit,
-    onRegisterSuccess: () -> Unit
+    onRegisterSuccess: (String?) -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
@@ -102,35 +104,57 @@ fun RegisterScreen(
 
         Button(
             onClick = {
-                coroutineScope.launch {
-                    isLoading = true
-                    feedbackMessage = null
+                val cleanEmail = email.trim()
+                val cleanName = name.trim()
+                val cleanSurname = surname.trim()
 
-                    try {
-                        val response = RetrofitClient.apiService.register(
-                            RegisterRequest(
-                                email = email,
-                                name = name,
-                                surname = surname,
-                                password = password
-                            )
-                        )
+                when {
+                    cleanEmail.isBlank() -> feedbackMessage = "Please enter your email."
+                    !cleanEmail.contains("@") -> feedbackMessage = "Please enter a valid email address."
+                    cleanName.isBlank() -> feedbackMessage = "Please enter your name."
+                    cleanSurname.isBlank() -> feedbackMessage = "Please enter your surname."
+                    password.isBlank() -> feedbackMessage = "Please enter your password."
+                    password.length < 6 -> feedbackMessage = "Password must be at least 6 characters."
+                    else -> {
+                        coroutineScope.launch {
+                            isLoading = true
+                            feedbackMessage = null
 
-                        if (response.isSuccessful) {
-                            feedbackMessage = response.body()?.message ?: "Registration successful."
-                            onRegisterSuccess()
-                        } else {
-                            val errorBody = response.errorBody()?.string()
-                            feedbackMessage = if (!errorBody.isNullOrBlank()) {
-                                "Registration failed: $errorBody"
-                            } else {
-                                "Registration failed (${response.code()})."
+                            try {
+                                val registerResponse = RetrofitClient.apiService.register(
+                                    RegisterRequest(
+                                        email = cleanEmail,
+                                        name = cleanName,
+                                        surname = cleanSurname,
+                                        password = password
+                                    )
+                                )
+
+                                val registerBody = registerResponse.body()
+                                if (registerResponse.isSuccessful && registerBody?.success == true) {
+                                    val loginResponse = RetrofitClient.apiService.login(
+                                        LoginRequest(email = cleanEmail, password = password)
+                                    )
+                                    val loginBody = loginResponse.body()
+
+                                    if (loginResponse.isSuccessful && loginBody?.success == true && !loginBody.token.isNullOrBlank()) {
+                                        onRegisterSuccess(loginBody.token)
+                                    } else {
+                                        feedbackMessage = "Account created, but automatic login failed. Please try logging in."
+                                    }
+                                } else {
+                                    val rawError = registerResponse.errorBody()?.string()
+                                    val backendMessage = registerBody?.message
+                                        ?: registerBody?.detail
+                                        ?: extractApiMessage(rawError)
+                                    feedbackMessage = backendMessage ?: "Registration failed. Please check your details and try again."
+                                }
+                            } catch (_: Exception) {
+                                feedbackMessage = "We could not connect right now. Please try again in a moment."
+                            } finally {
+                                isLoading = false
                             }
                         }
-                    } catch (e: Exception) {
-                        feedbackMessage = "Registration failed: ${e.message ?: "Unknown error"}"
-                    } finally {
-                        isLoading = false
                     }
                 }
             },
@@ -155,6 +179,18 @@ fun RegisterScreen(
                 color = MaterialTheme.colorScheme.outline
             )
         }
+    }
+}
+
+private fun extractApiMessage(rawErrorBody: String?): String? {
+    if (rawErrorBody.isNullOrBlank()) return null
+    return try {
+        val json = JSONObject(rawErrorBody)
+        json.optString("message").ifBlank {
+            json.optString("detail").ifBlank { null }
+        }
+    } catch (_: Exception) {
+        null
     }
 }
 

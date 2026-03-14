@@ -9,13 +9,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import com.example.compose.TUSChatbotTheme
 import com.tuschatbot.app.components.ChatTopBar
+import com.tuschatbot.app.network.RetrofitClient
 import com.tuschatbot.app.screens.HomeScreen
 import com.tuschatbot.app.screens.HelpScreen
 import com.tuschatbot.app.screens.LoginScreen
 import com.tuschatbot.app.screens.RegisterScreen
+import kotlinx.coroutines.launch
 
 private enum class AppScreen {
     Login,
@@ -38,6 +41,25 @@ class MainActivity : ComponentActivity() {
             TUSChatbotTheme(darkTheme = false, dynamicColor = false) {
                 val currentScreen = remember { mutableStateOf(AppScreen.Login) }
                 val authMode = remember { mutableStateOf<AuthMode?>(null) }
+                val authToken = remember { mutableStateOf<String?>(null) }
+                val coroutineScope = rememberCoroutineScope()
+
+                val exitToLogin: () -> Unit = {
+                    coroutineScope.launch {
+                        val token = authToken.value
+                        if (!token.isNullOrBlank()) {
+                            try {
+                                RetrofitClient.apiService.logout("Bearer $token")
+                            } catch (_: Exception) {
+                                // Clear local session even if logout request fails.
+                            }
+                        }
+
+                        authToken.value = null
+                        authMode.value = null
+                        currentScreen.value = AppScreen.Login
+                    }
+                }
 
                 // Basic layout structure with top bar and content area
                 Scaffold(
@@ -52,14 +74,9 @@ class MainActivity : ComponentActivity() {
                                     else -> AppScreen.Home
                                 }
                             },
-                            onLogoutClick = {
-                                authMode.value = null
-                                currentScreen.value = AppScreen.Login
-                            },
                             showBackButton =
                                 currentScreen.value == AppScreen.Help || currentScreen.value == AppScreen.Register,
-                            showHelpButton = authMode.value != null && currentScreen.value == AppScreen.Home,
-                            showLogoutButton = authMode.value != null
+                            showHelpButton = authMode.value != null && currentScreen.value == AppScreen.Home
                         )
                     }
                 ) { innerPadding ->
@@ -67,11 +84,13 @@ class MainActivity : ComponentActivity() {
                         AppScreen.Login -> {
                             LoginScreen(
                                 modifier = Modifier.padding(innerPadding),
-                                onLogin = {
+                                onLoginSuccess = { token ->
+                                    authToken.value = token
                                     authMode.value = AuthMode.LoggedIn
                                     currentScreen.value = AppScreen.Home
                                 },
                                 onContinueAsGuest = {
+                                    authToken.value = null
                                     authMode.value = AuthMode.Guest
                                     currentScreen.value = AppScreen.Home
                                 },
@@ -85,7 +104,8 @@ class MainActivity : ComponentActivity() {
                             RegisterScreen(
                                 modifier = Modifier.padding(innerPadding),
                                 onBackToLogin = { currentScreen.value = AppScreen.Login },
-                                onRegisterSuccess = {
+                                onRegisterSuccess = { token ->
+                                    authToken.value = token
                                     authMode.value = AuthMode.LoggedIn
                                     currentScreen.value = AppScreen.Home
                                 }
@@ -95,7 +115,8 @@ class MainActivity : ComponentActivity() {
                         AppScreen.Help -> {
                             HelpScreen(
                                 modifier = Modifier.padding(innerPadding),
-                                onBack = { currentScreen.value = AppScreen.Home }
+                                onBack = { currentScreen.value = AppScreen.Home },
+                                onExitApp = exitToLogin
                             )
                         }
 

@@ -2,6 +2,7 @@ package com.tuschatbot.app.network
 
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.Header
 import retrofit2.http.POST
 
 // Interface that defines how to communicate with the chatbot API
@@ -12,5 +13,11 @@ interface ChatbotApiService {
 
     @POST("api/register/")
     suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
+
+    @POST("api/login")
+    suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
+
+    @POST("api/logout/")
+    suspend fun logout(@Header("Authorization") authorization: String): Response<LogoutResponse>
 }
 
